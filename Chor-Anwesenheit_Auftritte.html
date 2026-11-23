@@ -1,0 +1,689 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Chor-Anwesenheit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: eine schmale Spalte fürs Handy am Probenrand. Oben der gewählte Auftritt mit Zähler,
+   darunter die Namen nach Stimmgruppen, jede Zeile ein großes Ankreuzfeld. */
+:root {
+  --bg: #F1F3F7;
+  --surface: #FFFFFF;
+  --ink: #1A1D2E;
+  --muted: #5D637C;
+  --line: #E1E4EE;
+  --line-strong: #B9BED0;
+  --accent: #146C57;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #E3F2EC;
+  --danger: #B3261E;
+  --focus: #2B6CB0;
+  --v-s: #C0396B;
+  --v-a: #B8700E;
+  --v-t: #2B6CB0;
+  --v-b: #6B46C1;
+  --font-display: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11131E;
+    --surface: #1A1D2D;
+    --ink: #ECEEF8;
+    --muted: #9BA1BC;
+    --line: #2B2F46;
+    --line-strong: #4A4F6C;
+    --accent: #4CC3A0;
+    --accent-ink: #08261F;
+    --accent-soft: #1B2F2D;
+    --danger: #F2928C;
+    --focus: #7DB2F2;
+    --v-s: #F27AA5;
+    --v-a: #F0B04A;
+    --v-t: #6FA8F0;
+    --v-b: #A98BF2;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11131E;
+  --surface: #1A1D2D;
+  --ink: #ECEEF8;
+  --muted: #9BA1BC;
+  --line: #2B2F46;
+  --line-strong: #4A4F6C;
+  --accent: #4CC3A0;
+  --accent-ink: #08261F;
+  --accent-soft: #1B2F2D;
+  --danger: #F2928C;
+  --focus: #7DB2F2;
+  --v-s: #F27AA5;
+  --v-a: #F0B04A;
+  --v-t: #6FA8F0;
+  --v-b: #A98BF2;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 16px/1.45 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 56px;
+}
+.wrap { max-width: 760px; margin: 0 auto; display: grid; gap: 16px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h1 { font-size: 1.9rem; line-height: 1.1; }
+h2 { font-size: 1.35rem; line-height: 1.2; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.grow { flex: 1; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+.tabs a { text-decoration: none; color: var(--muted); font-weight: 600; font-size: 0.95rem; padding: 8px 14px; border-radius: 9px; }
+.tabs a[aria-current="page"] { background: var(--accent); color: var(--accent-ink); }
+
+.banner { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; font-size: 0.9rem; color: var(--muted); }
+
+button { cursor: pointer; border: 1px solid var(--line-strong); background: var(--surface); border-radius: 10px; padding: 9px 14px; font-weight: 600; font-size: 0.92rem; min-height: 42px; }
+button:hover:not(:disabled) { border-color: var(--ink); }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+button.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+button.ghost:hover:not(:disabled) { color: var(--ink); border-color: var(--line-strong); }
+button.danger { color: var(--danger); }
+button.armed { background: var(--danger); border-color: var(--danger); color: #fff; }
+input[type="text"], input[type="date"], input[type="search"], select, textarea {
+  background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px; padding: 10px 12px; min-height: 44px; width: 100%; min-width: 0;
+}
+textarea { resize: vertical; }
+input:disabled, select:disabled, textarea:disabled { opacity: 0.5; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 12px; }
+.form { display: flex; flex-wrap: wrap; gap: 8px; }
+.form > input[type="text"] { flex: 2 1 200px; }
+.form > input[type="date"], .form > select { flex: 1 1 140px; }
+
+/* Auftrittsauswahl */
+.evbar { display: grid; gap: 10px; }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; }
+.chip { flex: none; scroll-snap-align: start; text-align: left; display: grid; gap: 1px; min-width: 128px; max-width: 220px; padding: 9px 13px; }
+.chip small { color: var(--muted); font-weight: 500; font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+.chip span { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+details.new > summary { cursor: pointer; font-weight: 600; color: var(--accent); padding: 6px 2px; list-style: none; width: fit-content; }
+details.new > summary::-webkit-details-marker { display: none; }
+details.new[open] > summary { margin-bottom: 8px; }
+details.new .form { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+
+.evhead { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.summary { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 12px; }
+.big { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.num { font: 700 3rem/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.of { color: var(--muted); font-weight: 500; font-variant-numeric: tabular-nums; }
+.bar { height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.25s ease; }
+.vg { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+.vg li { display: flex; align-items: center; gap: 8px; font-size: 0.92rem; }
+.vg b { margin-left: auto; font-variant-numeric: tabular-nums; }
+.dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+.v-s { background: var(--v-s); } .v-a { background: var(--v-a); } .v-t { background: var(--v-t); } .v-b { background: var(--v-b); }
+
+.tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.group { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.group + .group { margin-top: 12px; }
+.ghd { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+.ghd h3 { font-size: 1.05rem; }
+.ghd .cnt { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 0.92rem; }
+.ghd button { min-height: 36px; padding: 5px 10px; font-size: 0.85rem; }
+.row { position: relative; display: flex; align-items: center; gap: 14px; padding: 8px 14px; min-height: 56px; cursor: pointer; border-top: 1px solid var(--line); }
+.row input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.tick { flex: none; width: 30px; height: 30px; border-radius: 9px; border: 2px solid var(--line-strong); background: var(--surface); display: grid; place-items: center; transition: background 0.12s, border-color 0.12s; }
+.tick::after { content: ""; width: 14px; height: 8px; border-left: 3px solid var(--accent-ink); border-bottom: 3px solid var(--accent-ink); transform: rotate(-45deg) translate(1px, -1px); opacity: 0; }
+.row input:checked + .tick { background: var(--accent); border-color: var(--accent); }
+.row input:checked + .tick::after { opacity: 1; }
+.row input:focus-visible + .tick { outline: 3px solid var(--focus); outline-offset: 2px; }
+.row input:disabled + .tick { opacity: 0.5; }
+.row:has(input:checked) { background: var(--accent-soft); }
+.nm { font-weight: 500; overflow-wrap: anywhere; }
+
+.empty { background: var(--surface); border: 1px dashed var(--line-strong); border-radius: 14px; padding: 20px; display: grid; gap: 10px; justify-items: start; }
+.empty h2 { font-size: 1.15rem; }
+
+.mem { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.mem .nm { flex: 1 1 140px; }
+.mem small { color: var(--muted); font-variant-numeric: tabular-nums; }
+.mem select { width: auto; min-height: 38px; padding: 6px 8px; }
+.mem button { min-height: 38px; padding: 6px 10px; }
+.bulk summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+.bulk .form { margin-top: 10px; }
+
+.toast { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 0.92rem; max-width: calc(100vw - 32px); z-index: 20; }
+.foot { font-size: 0.82rem; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+@media (max-width: 460px) {
+  h1 { font-size: 1.55rem; }
+  .num { font-size: 2.5rem; }
+}
+</style>
+
+<main class="wrap">
+  <header class="top">
+    <h1>Chor-Anwesenheit</h1>
+    <nav class="tabs" aria-label="Bereiche">
+      <a href="#auftritte" id="tab-events">Auftritte</a>
+      <a href="#chorliste" id="tab-roster">Chorliste</a>
+    </nav>
+  </header>
+
+  <div id="banner" class="banner" role="status" hidden></div>
+
+  <section id="view-events" aria-label="Auftritte">
+    <div class="evbar">
+      <div id="eventChips" class="chips"></div>
+      <details id="newEvent" class="new">
+        <summary>+ Neuer Auftritt</summary>
+        <form id="eventForm" class="form">
+          <input type="text" id="ev-title" placeholder="Name, z. B. Adventskonzert" required data-write>
+          <input type="date" id="ev-date" required data-write aria-label="Datum">
+          <button type="submit" class="primary" data-write>Anlegen</button>
+        </form>
+      </details>
+    </div>
+
+    <div id="noEvents" class="empty" hidden></div>
+
+    <div id="eventPanel" hidden style="display:none;gap:12px">
+      <div class="evhead">
+        <div>
+          <h2 id="evTitle"></h2>
+          <p id="evDate" class="muted"></p>
+        </div>
+        <button type="button" id="evDelete" class="ghost danger" data-act="del-event" data-confirm="del-event" data-write>Auftritt löschen</button>
+      </div>
+      <div id="evSummary" class="summary"></div>
+      <div class="tools">
+        <button type="button" data-act="all-in" data-write>Alle anwesend</button>
+        <button type="button" data-act="all-out" data-write>Alle abwählen</button>
+        <span class="grow"></span>
+        <button type="button" class="ghost" id="expOne" data-act="exp-one" hidden>CSV dieses Auftritts</button>
+        <button type="button" class="ghost" id="expAll" data-act="exp-all" hidden>CSV aller Auftritte</button>
+      </div>
+      <input type="search" id="filter" placeholder="Name suchen" aria-label="Name suchen" autocomplete="off">
+      <div id="evList"></div>
+    </div>
+  </section>
+
+  <section id="view-roster" aria-label="Chorliste" hidden style="display:none;gap:12px">
+    <div class="card">
+      <h2>Person hinzufügen</h2>
+      <form id="memberForm" class="form">
+        <input type="text" id="m-name" placeholder="Vor- und Nachname" required data-write>
+        <select id="m-voice" aria-label="Stimmgruppe" data-write></select>
+        <button type="submit" class="primary" data-write>Hinzufügen</button>
+      </form>
+      <details class="bulk">
+        <summary>Mehrere Namen auf einmal einfügen</summary>
+        <div class="form">
+          <textarea id="bulk" rows="6" placeholder="Eine Person pro Zeile. Die Stimmgruppe kann dahinter stehen:&#10;Anna Berger, Tenor1&#10;Jonas Kern, Tenor" data-write></textarea>
+          <select id="bulk-voice" aria-label="Stimmgruppe, wenn keine angegeben ist" data-write></select>
+          <button type="button" class="primary" data-act="bulk-add" data-write>Einfügen</button>
+        </div>
+        <p class="foot" style="margin-top:6px">Die Auswahl rechts gilt für Zeilen ohne Stimmgruppe.</p>
+      </details>
+    </div>
+    <div id="rosterEmpty" class="empty" hidden></div>
+    <div id="rosterList"></div>
+    <div><button type="button" class="ghost" id="clearExample" data-act="example-clear" data-write hidden>Beispieldaten entfernen</button></div>
+  </section>
+
+  <p id="foot" class="foot"></p>
+</main>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+  var VOICES = ['Tenor 1', 'Tenor 2', 'Bass 1', 'Bass 2'];
+  var VCLS = { Tenor1: 'v-s', Tenor2: 'v-a', Bass1: 'v-t', Bass2: 'v-b' };
+  var S = { members: [], events: [], ready: false };
+  var B = null, DL = null;
+  var readOnly = false, slow = false;
+  var selectedId = null, filter = '', confirmKey = null;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+  var uid = function () { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); };
+  var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+  var todayStr = function () { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+  var toDate = function (s) { var p = String(s).split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); };
+  var fmtLong = function (s) {
+    try { return new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(toDate(s)); }
+    catch (e) { return s; }
+  };
+  var fmtShort = function (s) {
+    try { return new Intl.DateTimeFormat('de-DE', { day: 'numeric', month: 'short', year: 'numeric' }).format(toDate(s)); }
+    catch (e) { return s; }
+  };
+  var byName = function (a, b) { return a.name.localeCompare(b.name, 'de'); };
+  var toastTimer = null;
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 3500);
+  }
+  function onWriteError(e) {
+    if (e && e.code === 'invalid_argument') toast('Speichern nicht möglich. Vermutlich fehlt dir die Schreibberechtigung.');
+    else if (e && e.code === 'quota_exceeded') toast('Der Speicher ist voll. Lösche alte Auftritte.');
+    else toast('Speichern fehlgeschlagen. Bitte versuche es noch einmal.');
+  }
+
+  /* ---------- Speicher: geteilte Datenbank, sonst Browser ---------- */
+  function dbBackend(db) {
+    var chains = {};
+    function q(key, fn) {
+      var p = (chains[key] || Promise.resolve()).then(fn).catch(onWriteError);
+      chains[key] = p; return p;
+    }
+    function fail(e) { if (e && e.code !== 'unavailable') toast('Daten konnten nicht geladen werden.'); }
+    return {
+      kind: 'db',
+      start: function () {
+        var gotR = false, gotE = false;
+        db.doc('choir/roster').onSnapshot(function (s) {
+          var d = s.data();
+          S.members = (d && d.members) || [];
+          gotR = true; S.ready = gotR && gotE; render();
+        }, fail);
+        db.collection('events').onSnapshot(function (s) {
+          S.events = s.docs.map(function (d) { var o = d.data() || {}; o.id = d.id; return o; });
+          gotE = true; S.ready = gotR && gotE; render();
+        }, fail);
+      },
+      saveMembers: function (m) { return q('roster', function () { return db.doc('choir/roster').set({ members: m }); }); },
+      setEvent: function (id, ev) { return q('e/' + id, function () { return db.doc('events/' + id).set(ev); }); },
+      patchPresent: function (id, map) { return q('e/' + id, function () { return db.doc('events/' + id).update({ present: map }); }); },
+      deleteEvent: function (id) { return q('e/' + id, function () { return db.doc('events/' + id).delete(); }); }
+    };
+  }
+  function localBackend() {
+    var KEY = 'chor-anwesenheit-v1';
+    function persist() { try { localStorage.setItem(KEY, JSON.stringify({ members: S.members, events: S.events })); } catch (e) {} }
+    return {
+      kind: 'local',
+      start: function () {
+        try {
+          var r = localStorage.getItem(KEY);
+          if (r) { var o = JSON.parse(r); S.members = o.members || []; S.events = o.events || []; }
+        } catch (e) {}
+        S.ready = true; render();
+      },
+      saveMembers: function () { persist(); return Promise.resolve(); },
+      setEvent: function () { persist(); return Promise.resolve(); },
+      patchPresent: function () { persist(); return Promise.resolve(); },
+      deleteEvent: function () { persist(); return Promise.resolve(); }
+    };
+  }
+
+  /* ---------- Aktionen ---------- */
+  function saveMembers(list) { S.members = list; render(); return B.saveMembers(list); }
+  function addEvent(title, date, extra) {
+    var id = uid();
+    var ev = { id: id, title: title, date: date, present: {} };
+    if (extra) for (var k in extra) ev[k] = extra[k];
+    S.events.push(ev); selectedId = id; render();
+    var body = {}; for (var j in ev) if (j !== 'id') body[j] = ev[j];
+    return B.setEvent(id, body);
+  }
+  function currentEvent() { return S.events.filter(function (e) { return e.id === selectedId; })[0] || null; }
+  function setPresent(eid, map) {
+    var ev = S.events.filter(function (e) { return e.id === eid; })[0];
+    if (!ev) return;
+    ev.present = ev.present || {};
+    for (var k in map) ev.present[k] = map[k];
+    render();
+    return B.patchPresent(eid, map);
+  }
+  function removeEvent(id) {
+    S.events = S.events.filter(function (e) { return e.id !== id; });
+    render();
+    return B.deleteEvent(id);
+  }
+  function parseVoice(s) {
+    var t = String(s || '').trim().toLowerCase();
+    for (var i = 0; i < VOICES.length; i++) if (VOICES[i].toLowerCase() === t) return VOICES[i];
+    return null;
+  }
+  function addMembers(list) {
+    if (!list.length) return;
+    saveMembers(S.members.concat(list));
+  }
+  function loadExample() {
+    var names = [
+      ['Anna Berger', 'Tenor 1'], ['Lena Vogt', 'Tenor 1'], ['Mira Kaya', 'Tenor 1'],
+      ['Hanna Roth', 'Tenor 2'], ['Sofia Lang', 'Tenor 2'], ['Ida Brandt', 'Tenor 2'],
+      ['Jonas Kern', 'Bass 1'], ['Paul Wendt', 'Bass 1'], ['Emre Aydin', 'Bass 1'],
+      ['Max Hartmann', 'Bass 2'], ['Tobias Eck', 'Bass 2'], ['Felix Sommer', 'Bass 2']
+    ];
+    var ms = names.map(function (n) { return { id: uid(), name: n[0], voice: n[1], ex: true }; });
+    S.members = S.members.concat(ms);
+    B.saveMembers(S.members);
+    var pres = {};
+    ms.forEach(function (m, i) { pres[m.id] = i % 4 !== 3 || i < 4; });
+    addEvent('Adventskonzert (Beispiel)', '2026-12-13', { ex: true, present: pres });
+    view('events');
+  }
+  function clearExample() {
+    S.members = S.members.filter(function (m) { return !m.ex; });
+    B.saveMembers(S.members);
+    S.events.filter(function (e) { return e.ex; }).forEach(function (e) { B.deleteEvent(e.id); });
+    S.events = S.events.filter(function (e) { return !e.ex; });
+    render();
+  }
+
+  /* ---------- Export ---------- */
+  function cell(v) { v = String(v == null ? '' : v); return /[";\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+  function sortedMembers() {
+    return S.members.slice().sort(function (a, b) {
+      var d = VOICES.indexOf(a.voice) - VOICES.indexOf(b.voice);
+      return d || byName(a, b);
+    });
+  }
+  function slug(s) { return String(s).toLowerCase().replace(/[^a-z0-9äöüß]+/g, '-').replace(/^-|-$/g, '') || 'auftritt'; }
+  function saveCsv(name, rows) {
+    var text = '﻿' + rows.map(function (r) { return r.map(cell).join(';'); }).join('\r\n');
+    DL.save({ filename: name, data: text }).then(function () { toast('Datei gespeichert.'); }).catch(function (e) {
+      if (e && e.code === 'declined') return;
+      toast('Die Datei konnte nicht gespeichert werden.');
+    });
+  }
+  function exportOne() {
+    var ev = currentEvent(); if (!ev) return;
+    var rows = [['Name', 'Stimmgruppe', 'Anwesend']];
+    sortedMembers().forEach(function (m) { rows.push([m.name, m.voice, ev.present && ev.present[m.id] ? 'Ja' : 'Nein']); });
+    saveCsv('anwesenheit-' + ev.date + '-' + slug(ev.title) + '.csv', rows);
+  }
+  function exportAll() {
+    var evs = S.events.slice().sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+    var head = ['Name', 'Stimmgruppe'].concat(evs.map(function (e) { return e.date + ' ' + e.title; }), ['Anwesend', 'Quote']);
+    var rows = [head];
+    sortedMembers().forEach(function (m) {
+      var n = 0;
+      var cells = evs.map(function (e) { var p = e.present && e.present[m.id]; if (p) n++; return p ? 'Ja' : 'Nein'; });
+      rows.push([m.name, m.voice].concat(cells, [n, evs.length ? Math.round(100 * n / evs.length) + ' %' : '']));
+    });
+    saveCsv('anwesenheit-gesamt-' + todayStr() + '.csv', rows);
+  }
+
+  /* ---------- Darstellung ---------- */
+  var currentView = 'events';
+  function readHash() { currentView = location.hash === '#chorliste' ? 'roster' : 'events'; }
+  function view(v) { location.hash = v === 'roster' ? '#chorliste' : '#auftritte'; }
+
+  function pickDefault(evs) {
+    if (!evs.length) return null;
+    var now = toDate(todayStr()).getTime(), best = evs[0], bd = Infinity;
+    evs.forEach(function (e) { var d = Math.abs(toDate(e.date).getTime() - now); if (d < bd) { bd = d; best = e; } });
+    return best.id;
+  }
+
+  function renderBanner() {
+    var msgs = [];
+    if (!S.ready) msgs.push(slow ? 'Die Daten lassen sich gerade nicht abrufen. Die Anzeige kann veraltet sein.' : 'Daten werden geladen …');
+    if (readOnly) msgs.push('Du hast nur Leserechte. Ankreuzen und Bearbeiten sind deaktiviert.');
+    var b = $('banner');
+    b.hidden = !msgs.length; b.textContent = msgs.join(' ');
+    $('foot').textContent = B && B.kind === 'local'
+      ? 'Die Daten liegen nur in diesem Browser auf diesem Gerät. Andere sehen sie nicht.'
+      : '';
+  }
+
+  function emptyBox(el, html) { el.innerHTML = html; el.hidden = false; }
+
+  function renderEvents() {
+    var evs = S.events.slice().sort(function (a, b) {
+      return a.date < b.date ? 1 : a.date > b.date ? -1 : a.title.localeCompare(b.title, 'de');
+    });
+    if (!selectedId || !evs.some(function (e) { return e.id === selectedId; })) selectedId = pickDefault(evs);
+    $('eventChips').innerHTML = evs.map(function (e) {
+      return '<button type="button" class="chip" data-act="sel-event" data-id="' + esc(e.id) + '" aria-pressed="' + (e.id === selectedId) + '">' +
+        '<small>' + esc(fmtShort(e.date)) + '</small><span>' + esc(e.title) + '</span></button>';
+    }).join('');
+
+    var ne = $('noEvents');
+    if (!evs.length && S.ready) {
+      if (!S.members.length) {
+        emptyBox(ne, '<h2>Noch keine Chorliste</h2><p class="muted">Lege zuerst die Sängerinnen und Sänger an. Danach erfasst du pro Auftritt per Ankreuzen, wer da ist.</p>' +
+          '<button type="button" class="primary" data-act="goto-roster">Chorliste anlegen</button>' +
+          '<button type="button" class="ghost" data-act="example-load" data-write>Mit Beispieldaten ausprobieren</button>');
+      } else {
+        emptyBox(ne, '<h2>Noch kein Auftritt</h2><p class="muted">Lege den ersten Auftritt an, dann kannst du die Anwesenheit ankreuzen.</p>' +
+          '<button type="button" class="primary" data-act="open-new" data-write>Auftritt anlegen</button>');
+      }
+    } else ne.hidden = true;
+
+    var ev = currentEvent();
+    var panel = $('eventPanel');
+    panel.hidden = !ev; panel.style.display = ev ? 'grid' : 'none';
+    if (!ev) return;
+
+    $('evTitle').textContent = ev.title;
+    $('evDate').textContent = fmtLong(ev.date);
+    var del = $('evDelete');
+    var armed = confirmKey === 'del-event';
+    del.textContent = armed ? 'Wirklich löschen?' : 'Auftritt löschen';
+    del.classList.toggle('armed', armed);
+    $('expOne').hidden = !DL; $('expAll').hidden = !DL;
+
+    var present = ev.present || {};
+    var total = S.members.length;
+    var inCount = S.members.filter(function (m) { return present[m.id] === true; }).length;
+    var pct = total ? Math.round(100 * inCount / total) : 0;
+    var vg = VOICES.map(function (v) {
+      var ms = S.members.filter(function (m) { return m.voice === v; });
+      var n = ms.filter(function (m) { return present[m.id] === true; }).length;
+      return '<li><span class="dot ' + VCLS[v] + '"></span>' + v + '<b>' + n + '/' + ms.length + '</b></li>';
+    }).join('');
+    $('evSummary').innerHTML =
+      '<div class="big"><span class="num">' + inCount + '</span><span class="of">von ' + total + ' anwesend · ' + pct + ' %</span></div>' +
+      '<div class="bar" role="img" aria-label="' + pct + ' Prozent anwesend"><i style="width:' + pct + '%"></i></div>' +
+      '<ul class="vg">' + vg + '</ul>';
+
+    var list = $('evList');
+    if (!total) {
+      list.innerHTML = '<div class="empty"><h2>Die Chorliste ist leer</h2><p class="muted">Trage zuerst die Mitglieder ein.</p><button type="button" class="primary" data-act="goto-roster">Zur Chorliste</button></div>';
+      return;
+    }
+    var f = filter.trim().toLowerCase();
+    var html = '';
+    VOICES.forEach(function (v) {
+      var all = S.members.filter(function (m) { return m.voice === v; }).sort(byName);
+      if (!all.length) return;
+      var shown = f ? all.filter(function (m) { return m.name.toLowerCase().indexOf(f) !== -1; }) : all;
+      if (!shown.length) return;
+      var n = all.filter(function (m) { return present[m.id] === true; }).length;
+      html += '<section class="group"><div class="ghd"><span class="dot ' + VCLS[v] + '"></span><h3>' + v + '</h3>' +
+        '<span class="cnt">' + n + ' von ' + all.length + '</span><span class="grow"></span>' +
+        '<button type="button" class="ghost" data-act="group-toggle" data-voice="' + v + '" data-write>' + (n === all.length ? 'Gruppe abwählen' : 'Gruppe komplett') + '</button></div>';
+      shown.forEach(function (m) {
+        html += '<label class="row"><input type="checkbox" data-mid="' + esc(m.id) + '"' + (present[m.id] === true ? ' checked' : '') + ' data-write>' +
+          '<span class="tick" aria-hidden="true"></span><span class="nm">' + esc(m.name) + '</span></label>';
+      });
+      html += '</section>';
+    });
+    list.innerHTML = html || '<p class="muted">Kein Name passt zur Suche.</p>';
+  }
+
+  function renderRoster() {
+    var list = $('rosterList');
+    var re = $('rosterEmpty');
+    var done = S.events.length;
+    if (!S.members.length && S.ready) {
+      emptyBox(re, '<h2>Noch niemand in der Chorliste</h2><p class="muted">Füge Personen oben einzeln hinzu oder füge eine ganze Namensliste auf einmal ein.</p>' +
+        '<button type="button" class="ghost" data-act="example-load" data-write>Mit Beispieldaten ausprobieren</button>');
+    } else re.hidden = true;
+    var html = '';
+    VOICES.forEach(function (v) {
+      var ms = S.members.filter(function (m) { return m.voice === v; }).sort(byName);
+      if (!ms.length) return;
+      html += '<section class="group"><div class="ghd"><span class="dot ' + VCLS[v] + '"></span><h3>' + v + '</h3><span class="cnt">' + ms.length + '</span></div>';
+      ms.forEach(function (m) {
+        var n = S.events.filter(function (e) { return e.present && e.present[m.id] === true; }).length;
+        var armed = confirmKey === 'rm-' + m.id;
+        html += '<div class="mem"><span class="nm">' + esc(m.name) + '</span>' +
+          (done ? '<small>' + n + ' von ' + done + ' Auftritten</small>' : '') +
+          '<select data-mid="' + esc(m.id) + '" data-act="voice" aria-label="Stimmgruppe von ' + esc(m.name) + '" data-write>' +
+          VOICES.map(function (x) { return '<option' + (x === m.voice ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select>' +
+          '<button type="button" class="ghost danger' + (armed ? ' armed' : '') + '" data-act="rm-member" data-confirm="rm-' + esc(m.id) + '" data-id="' + esc(m.id) + '" data-write>' +
+          (armed ? 'Wirklich entfernen?' : 'Entfernen') + '</button></div>';
+      });
+      html += '</section>';
+    });
+    list.innerHTML = html;
+    $('clearExample').hidden = !(S.members.some(function (m) { return m.ex; }) || S.events.some(function (e) { return e.ex; }));
+  }
+
+  function render() {
+    $('view-events').hidden = currentView !== 'events';
+    $('view-events').style.display = currentView === 'events' ? '' : 'none';
+    $('view-roster').hidden = currentView !== 'roster';
+    $('view-roster').style.display = currentView === 'roster' ? 'grid' : 'none';
+    $('tab-events').setAttribute('aria-current', currentView === 'events' ? 'page' : 'false');
+    $('tab-roster').setAttribute('aria-current', currentView === 'roster' ? 'page' : 'false');
+    renderBanner();
+    if (currentView === 'events') renderEvents(); else renderRoster();
+    var ws = document.querySelectorAll('[data-write]');
+    for (var i = 0; i < ws.length; i++) ws[i].disabled = readOnly;
+  }
+
+  /* ---------- Ereignisse ---------- */
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.matches && t.matches('#evList input[type="checkbox"]')) {
+      var o = {}; o[t.getAttribute('data-mid')] = t.checked;
+      setPresent(selectedId, o);
+    } else if (t.matches && t.matches('select[data-act="voice"]')) {
+      var id = t.getAttribute('data-mid');
+      saveMembers(S.members.map(function (m) { if (m.id !== id) return m; var c = {}; for (var k in m) c[k] = m[k]; c.voice = t.value; return c; }));
+    }
+  });
+  $('filter').addEventListener('input', function (e) { filter = e.target.value; renderEvents(); });
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('[data-act]') : null;
+    if (!a || a.tagName === 'SELECT') {
+      if (confirmKey && !(e.target.closest && e.target.closest('.row'))) { confirmKey = null; render(); }
+      return;
+    }
+    var act = a.getAttribute('data-act');
+    var ck = a.getAttribute('data-confirm');
+    if (ck) {
+      if (confirmKey !== ck) { confirmKey = ck; render(); return; }
+      confirmKey = null;
+    } else if (confirmKey) { confirmKey = null; }
+    var ev = currentEvent();
+
+    if (act === 'sel-event') { selectedId = a.getAttribute('data-id'); render(); }
+    else if (act === 'del-event') { if (ev) removeEvent(ev.id); }
+    else if (act === 'all-in' || act === 'all-out') {
+      if (!ev) return;
+      var map = {}; S.members.forEach(function (m) { map[m.id] = act === 'all-in'; });
+      if (S.members.length) setPresent(ev.id, map);
+    }
+    else if (act === 'group-toggle') {
+      if (!ev) return;
+      var v = a.getAttribute('data-voice');
+      var ms = S.members.filter(function (m) { return m.voice === v; });
+      var every = ms.every(function (m) { return ev.present && ev.present[m.id] === true; });
+      var map2 = {}; ms.forEach(function (m) { map2[m.id] = !every; });
+      setPresent(ev.id, map2);
+    }
+    else if (act === 'rm-member') {
+      var id = a.getAttribute('data-id');
+      saveMembers(S.members.filter(function (m) { return m.id !== id; }));
+    }
+    else if (act === 'goto-roster') view('roster');
+    else if (act === 'open-new') { $('newEvent').open = true; $('ev-title').focus(); }
+    else if (act === 'example-load') loadExample();
+    else if (act === 'example-clear') clearExample();
+    else if (act === 'exp-one') exportOne();
+    else if (act === 'exp-all') exportAll();
+    else if (act === 'bulk-add') {
+      var def = $('bulk-voice').value;
+      var out = [];
+      $('bulk').value.split(/\r?\n/).forEach(function (line) {
+        line = line.trim(); if (!line) return;
+        var parts = line.split(/[,;\t]/);
+        var voice = def;
+        if (parts.length > 1) { var pv = parseVoice(parts[parts.length - 1]); if (pv) { voice = pv; parts.pop(); } }
+        var name = parts.join(' ').replace(/\s+/g, ' ').trim();
+        if (name) out.push({ id: uid(), name: name, voice: voice });
+      });
+      if (!out.length) { toast('Keine Namen erkannt.'); return; }
+      addMembers(out); $('bulk').value = '';
+      toast(out.length + (out.length === 1 ? ' Person hinzugefügt.' : ' Personen hinzugefügt.'));
+    }
+  });
+
+  $('eventForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var title = $('ev-title').value.trim(), date = $('ev-date').value;
+    if (!title || !date) return;
+    addEvent(title, date);
+    $('ev-title').value = ''; $('newEvent').open = false; filter = ''; $('filter').value = '';
+    view('events');
+  });
+  $('memberForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var name = $('m-name').value.replace(/\s+/g, ' ').trim();
+    if (!name) return;
+    addMembers([{ id: uid(), name: name, voice: $('m-voice').value }]);
+    $('m-name').value = ''; $('m-name').focus();
+  });
+  window.addEventListener('hashchange', function () { readHash(); render(); });
+
+  /* ---------- Start ---------- */
+  var opts = VOICES.map(function (v) { return '<option>' + v + '</option>'; }).join('');
+  $('m-voice').innerHTML = opts; $('bulk-voice').innerHTML = opts;
+  $('ev-date').value = todayStr();
+  readHash();
+  B = localBackend();      // Vorläufig, bis geklärt ist, ob die geteilte Datenbank da ist
+  render();
+
+  function use(name) {
+    try { return window.claude && claude.use ? claude.use(name).catch(function () { return null; }) : Promise.resolve(null); }
+    catch (e) { return Promise.resolve(null); }
+  }
+  Promise.all([use('db'), use('user'), use('downloads')]).then(function (r) {
+    var db = r[0], user = r[1];
+    DL = r[2] || null;
+    var chosen = db ? dbBackend(db) : localBackend();
+    var go = function (w) {
+      readOnly = w === false;
+      B = chosen; S.ready = false; S.members = []; S.events = []; selectedId = null;
+      if (chosen.kind === 'db') {
+        setTimeout(function () { if (!S.ready) { slow = true; render(); } }, 10000);
+      }
+      render(); chosen.start();
+    };
+    if (db && user) user.can('data.write').then(go, function () { go(null); });
+    else go(null);
+  });
+})();
+</script>
+
+</body></html>
